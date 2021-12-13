@@ -4,4 +4,4 @@ typedef struct Plants {
     double sodium;
     double ph;
 
-} curPlant;
+} Plant;

@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/johan/Desktop/plantevanderP1/SensorData.h
+
+C:/Users/johan/Desktop/plantevanderP1/plantData.h
+
+C:/Users/johan/Desktop/plantevanderP1/plantevander.c
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+conio.h
+-
+time.h
+-
+plantData.h
+C:/Users/johan/Desktop/plantevanderP1/plantData.h
+SensorData.h
+C:/Users/johan/Desktop/plantevanderP1/SensorData.h
+temperaturSimulator.h
+C:/Users/johan/Desktop/plantevanderP1/temperaturSimulator.h
+
+C:/Users/johan/Desktop/plantevanderP1/temperaturSimulator.h
+stdio.h
+-
+stdlib.h
+-
+time.h
+-
+

@@ -1,4 +1,4 @@
 Kartofler -1
-magnesium 79.103604
-sodium 129.654400
-ph 7.545000
+magnesium 50
+sodium 23
+ph 6.75
