@@ -1,18 +1,26 @@
 #include<stdio.h>
+#include "random.h"
+int humidity_regulater(int humid, int ideal_humidity)
+{
 
-int main() {
-    int humid=0;
+  if (humid<=ideal_humidity) {
+    printf("turned off fans\n");
+  }
+  else
+  {
+    printf("turning on fans\n");
 
-    if (humid==0) {
-        printf("");
-        return 0;
+    while (humid>ideal_humidity){
+      //printf("Input Humidity: ");
+      //scanf("%d", &humid);
+      humid = get_random(0, 100);
+      printf("Input Humidity: %d\n ", humid);
+      if (humid <= ideal_humidity) {
+        printf("turning off fans\n");
+      }
     }
-        else if (humid>0) {
-        printf("turning on fans");
-        scanf("%d", humid);
-        if (humid == 0) {
-            Printf("turning off fans");
-        } else return 0;
-    }
+
+  }
+  return humid;
+
 }
-
