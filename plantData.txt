@@ -1,4 +1,7 @@
-Kartofler -1
-magnesium 79.103604
-sodium 129.654400
-ph 7.545000
+Kartoffel -1
+ph 7.800000
+ec 10.200000
+waterLevel 1000.000000
+airTemp 34.400002
+waterTemp 13.200000
+humidity 54.299999
