@@ -3,7 +3,7 @@ void delay(int mSeconds);
 void invalid_input();
 void read_data(struct PlantSensors *current);
 void overwrite_data(struct PlantSensors *current);
-void edit_data(struct PlantSensors *current, int state);
+void edit_data(struct PlantSensors *current, int sprinklerState);
 void setup(struct PlantSensors *current);
 void print_plant(struct Plants current);
 void list_plants(struct Plants plants[], int plantAmount);

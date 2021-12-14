@@ -1,7 +1,7 @@
-Kartoffel -1
+Kartoffel 99999
 ph 7.800000
 ec 10.200000
-waterLevel 1000.000000
-airTemp 34.400002
-waterTemp 13.200000
+waterLevel 9888.815430
+airTemp 28.443331
+waterTemp -25.630497
 humidity 54.299999

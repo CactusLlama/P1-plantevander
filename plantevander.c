@@ -5,6 +5,7 @@
 #include <time.h>
 #include "plantData.h"
 #include "declareFunctions.h"
+#include "climate.h"
 
 //time constant for tick in main loop
 #define TIME_CONSTANT_MILSEC 2000
@@ -13,7 +14,9 @@
 int main() {
     char kbInput;
     clock_t curTime = 0;
-    int state, ctr = 0;
+    int sprinklerState;
+    int ctr = 110;
+    int month = 0, swapMonth = 1;
     int plantAmount = 1, selectedProfile = 0;
     struct Plants plants[10];
     struct PlantSensors curPlant;
@@ -29,17 +32,31 @@ int main() {
     //endless loop
     for(;;) {
         system("cls");
-         
-        if (ctr % 9 == 0) {
-            printf("Sprinklers turned on..\n%d\n", ctr);
-            state = 1;
-        } else {
-            printf("Sprinklers turned off..\n%d\n", ctr);
-            state = -1;
-        }
         
         printf("Current plant: %s\nSelected profile: %s\n", curPlant.name, plants[selectedProfile].name);
-        printf("Current sensor data:\n pH value: %.2f\n EC value: %.2f\n Current water level in tank: %.1f L\n Current air temperature: %.1f deg C\n Current water temperature: %.1f deg C\n Current humidity level: %.2f%%\n", curPlant.ph, curPlant.ec, curPlant.waterLevel, curPlant.airTemp, curPlant.waterTemp, curPlant.humidity);
+        
+        printf("\nCurrent sensor data:\n pH value: %.2f\n EC value: %.2f\n Current water level in tank: %.1f L\n Current air temperature: %.1f deg C\n Current water temperature: %.1f deg C\n Current humidity level: %.2f%%\n", curPlant.ph, curPlant.ec, curPlant.waterLevel, curPlant.airTemp, curPlant.waterTemp, curPlant.humidity);
+
+        month = (month + 1 * (ctr % 120 == 0)) % 12;
+        
+        //if its time to swap month, do
+        //swapMonth makes sure this only happens once
+        if (ctr % 120 == 0 && swapMonth == 1) {
+            curPlant.airTemp = temperatureSimulator(month);
+            swapMonth *= -1;
+        }
+        
+        if (ctr % 9 == 0) {
+            printf("\nSprinklers on..\n%d\n", ctr);
+            sprinklerState = 1;
+        } else {
+            printf("\nSprinklers off..\n%d\n", ctr);
+            sprinklerState = -1;
+        }
+        
+        //edit temperatures. latter argument finds the avg of the range given in plant struct, which should be "ideal"
+        climateSystem(&curPlant, (plants[selectedProfile].airTempMax + plants[selectedProfile].airTempMin) / 2); 
+        
         printf("\nEnter the number of which action you want to do.\n 1. Enter edit mode\n 2. Enter debugging mode\n 3. Exit program\n");
         
         //if user presses their keyboard, get the char and process which option the user chose
@@ -48,7 +65,7 @@ int main() {
             process_input(kbInput, plants, &plantAmount, &curPlant);
         }
         
-        edit_data(&curPlant, state);
+        edit_data(&curPlant, sprinklerState);
        
         //check if current time is more than last 'cycle' (last time this struck true) + the defined time constant
         if (clock() > curTime + TIME_CONSTANT_MILSEC) {
@@ -58,6 +75,8 @@ int main() {
             
             //used to turn on or off the sprinklers
             ctr++;
+            
+            swapMonth *= -1;
         }
         overwrite_data(&curPlant);
         delay(200);
@@ -87,7 +106,6 @@ void process_input(char a, struct Plants plants[], int *plantAmount, struct Plan
         default:
         invalid_input();
     }
-    return;
 }
 
 void delay(int mSeconds) {
@@ -97,8 +115,6 @@ void delay(int mSeconds) {
     //loop until clock is caught up with variable + specified delay
     while (clock() < startTime + mSeconds);
     //the program exits once while loop is caught up, having delayed a specified amount of seconds
-    
-    return;
 }
 
 void invalid_input() {
@@ -106,7 +122,6 @@ void invalid_input() {
     system("cls");
     printf("Invalid input!");
     delay(1000);
-    return;
 }
 
 void read_data(struct PlantSensors *current) {
@@ -120,7 +135,7 @@ void read_data(struct PlantSensors *current) {
         strcpy(prevStr, tempStr);
         fscanf(file, "%s %f\n", &tempStr, &tempNum);
         //number after the name in pplantData.txt is set to -1
-        if (tempNum < 0) {
+        if (tempNum == 99999) {
             strcpy(current->name, tempStr);
         }
         if (strcmp(tempStr, "ph") == 0) {
@@ -137,7 +152,6 @@ void read_data(struct PlantSensors *current) {
             current->humidity = tempNum;
         }
     }
-    return;
 }
 
 //do the same as readData() but write instead of read
@@ -155,36 +169,26 @@ void overwrite_data(struct PlantSensors *current) {
                           };
     
     //prints this data to .txt file from struct
-    fprintf(file, "%s -1\n", current->name);
+    fprintf(file, "%s 99999\n", current->name);
     fprintf(file, "%s %f\n", order[ctr++], current->ph);
     fprintf(file, "%s %f\n", order[ctr++], current->ec);
     fprintf(file, "%s %f\n", order[ctr++], current->waterLevel);
     fprintf(file, "%s %f\n", order[ctr++], current->airTemp);
     fprintf(file, "%s %f\n", order[ctr++], current->waterTemp);
     fprintf(file, "%s %f\n", order[ctr++], current->humidity);
-
-    return;
 }
 
-void edit_data(struct PlantSensors *current, int state) {
+void edit_data(struct PlantSensors *current, int sprinklerState) {
     //initialize random number generator
     time_t t;
     srand((unsigned) time(&t));
-
-    //if/else to determine whether to add or subtract a random number. the random number is between (random statement thing) * (max - min) + (min)
-    //this means that mg gets added a random number between 0.5 and 0.15. it gets subtracted between 0.1 and 0.01
-    //needs to be updated when nutrient solution gets implemented
-    //also with more nutrients
-    //ph and ec should be handled another way, since they depend on other factors
-    /*
-    if (state == 1) {
-        current->mg += ((double)rand() / RAND_MAX) * 0.35 + 0.15;
-    } else {
-        current->mg -= ((double)rand() / RAND_MAX) * 0.09 + 0.01;
+    
+    if (sprinklerState == 1 && current->waterLevel >= 0) {
+        current->waterLevel -= ((float)rand() / RAND_MAX) * 0.5 + 0.5;
     }
-*/
-
-    return;
+    
+    //give a random but small fluctuation in temperature
+    current->airTemp += ((float)rand() / RAND_MAX) * 0.125 - 0.1;
 }
 
 void edit_mode(struct Plants plants[], int *plantAmount) {
@@ -202,17 +206,16 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
         switch (input) {
             case '1':
             printf("Type the number of the plant you wish to view/edit:\n");
-            input = getch();
-            num = input - '0' - 1;
-            if (*plantAmount > num | 0 >= plantAmount) {
+            scanf("%d", &num);
+            if (*plantAmount < num | 0 >= plantAmount) {
                 printf("Invalid input!");
                 break;
             }
-            print_plant(plants[num]);
+            print_plant(plants[num - 1]);
             printf("\nDo you want to edit the values of this plant? [y/n]\n");
             input = getch();
             if (input == 'y') {
-                edit_plant(&plants[num]);
+                edit_plant(&plants[num - 1]);
                 printf("Plant edited!");
                 delay(1500);
             }
@@ -230,7 +233,8 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
             break;
             
             default:
-            printf("\nInvalid input!");
+            printf("\n\nInvalid input!");
+            delay(1500);
             break;
         }
     }
@@ -242,7 +246,7 @@ void print_plant(struct Plants current) {
     printf("pH values for this plant range from %.2f-%.2f\n", current.phMin, current.phMax);
     printf("EC levels for this plant range from %.2f-%.2f\n", current.ecMin, current.ecMax);
     printf("Air temperatures for this plant range from %.1f-%1.f deg C\n", current.airTempMin, current.airTempMax);
-    printf("Water temperatures for this plant range from %.2f-%.2f deg C\n", current.waterTempMin, current.waterTempMax);
+    printf("Water temperatures for this plant range from %.1f-%.1f deg C\n", current.waterTempMin, current.waterTempMax);
 }
 
 //print the names of the current plants stored in array of structs in a list
@@ -331,9 +335,9 @@ void init_structs(struct Plants plants[]) {
     
     strcpy(plants[0].name, "Kartoffel");
     plants[0].airTempMax = 30.0;
-    plants[0].airTempMin = 5.0;
+    plants[0].airTempMin = 25.0;
     plants[0].waterTempMax = 25.0;
-    plants[0].waterTempMin = 12.5;
+    plants[0].waterTempMin = 20.5;
     plants[0].phMax = 8.5;
     plants[0].phMin = 7.3;
     plants[0].ecMax = 12.5;
