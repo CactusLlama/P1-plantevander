@@ -33,16 +33,19 @@ int main() {
         //print cls in terminal to clear
         system("cls");
 
-        if (ctr % 150 == 0) { // Dvs. ca. every 5 minutes: (150 * (one iteration >= 2sek))/60 = 5
+        // Measure the outdoor temperature ca. every 5 minutes.
+        if (ctr % 150 == 0) { // (150 * (one iteration >= 2sek))/60 = 5
             sensor_current.air_temp = temperatureSimulator();
         }
         printf("The outdoor temperature is now: %.2f degrees C\n\n", sensor_current.air_temp);
 
-        climateSystem(sensor_current.air_temp, 20);
+        // Regulates temperature by approaching the ideal temperature.
+        climateSystem(&sensor_current, 20);
 
 
         if (ctr % 9 == 0) {
             printf("Sprinklers turned on..\n\n");
+            sensor_current.water_level -= 3000; // How much water is removed from the tank, excluding the amount not used by plants, if measured in mL
         } else {
             printf("Sprinklers turned off..\n\n");
         }

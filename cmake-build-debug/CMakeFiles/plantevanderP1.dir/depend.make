@@ -3,6 +3,6 @@
 
 CMakeFiles/plantevanderP1.dir/plantevander.c.obj: \
  ../SensorData.h \
+ ../climateNtemperature.h \
  ../plantData.h \
- ../plantevander.c \
- ../temperaturSimulator.h
+ ../plantevander.c

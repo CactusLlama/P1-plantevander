@@ -8,6 +8,18 @@
 
 C:/Users/johan/Desktop/plantevanderP1/SensorData.h
 
+C:/Users/johan/Desktop/plantevanderP1/climateNtemperature.h
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+time.h
+-
+SensorData.h
+C:/Users/johan/Desktop/plantevanderP1/SensorData.h
+
 C:/Users/johan/Desktop/plantevanderP1/plantData.h
 
 C:/Users/johan/Desktop/plantevanderP1/plantevander.c
@@ -25,14 +37,6 @@ plantData.h
 C:/Users/johan/Desktop/plantevanderP1/plantData.h
 SensorData.h
 C:/Users/johan/Desktop/plantevanderP1/SensorData.h
-temperaturSimulator.h
-C:/Users/johan/Desktop/plantevanderP1/temperaturSimulator.h
-
-C:/Users/johan/Desktop/plantevanderP1/temperaturSimulator.h
-stdio.h
--
-stdlib.h
--
-time.h
--
+climateNtemperature.h
+C:/Users/johan/Desktop/plantevanderP1/climateNtemperature.h
 

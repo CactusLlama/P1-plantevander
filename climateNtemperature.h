@@ -10,7 +10,7 @@
 #define PLANTEVANDERP1_CLIMATENTEMPERATURE_H
 
 float temperatureSimulator(void); // Simulates the outdoor temperature of Burkina Faso
-void climateSystem(struct SensorData *degrees, float ideal);
+void climateSystem(Data *degrees, float ideal);
 
 
 float temperatureSimulator(void) { // Returns semi-random float, based on the time of the day and the year.
@@ -78,29 +78,31 @@ float temperatureSimulator(void) { // Returns semi-random float, based on the ti
     float rnum = (((float)rand() / RAND_MAX) * (upper - lower)) + lower; // Selects a random number within boundaries: lower & upper.
     return rnum;
 
-   // if (curtime->tm_hour <= 6 && rnum > normal morning temperature) {
-   //     return rnum % /*A maximum morning temperature*/;
-  //  }
-  //  else if (curtime->tm_hour <= 18 && rnum > normal evening temperature) {
-  //      return rnum % /*A maximum evening temperature*/;
-  //  } else {
-   //     return rnum;
-  //  }
-
+    /*
+    if (curtime->tm_hour <= 6 && rnum > normal morning temperature) {
+        return rnum % A maximum morning temperature;}
+    }
+    else if (curtime->tm_hour <= 18 && rnum > normal evening temperature) {
+        return rnum % A maximum evening temperature;
+    } else {
+        return rnum;
+    }
+    */
 }
 
 
-void climateSystem(struct SensorData *degrees, float ideal) {
-    if (degrees->air_temp > ideal) {
-        printf("Cooling system: ON");
+void climateSystem(Data *degrees, float ideal) {
+    if (degrees->air_temp > ideal+1) {
+        printf("Climate system: Cooling ON\n");
         degrees->air_temp -= 0.01;
     }
-    else if (degrees->air_temp < ideal) {
-        printf("Heating system: ON");
+    else if (degrees->air_temp < ideal-1) {
+        printf("Climate system: Heating ON\n");
         degrees->air_temp += 0.01;
     } else {
-        printf("Climate system: OFF");
+        printf("Climate system: OFF\n");
     }
 }
+
 
 #endif //PLANTEVANDERP1_CLIMATENTEMPERATURE_H

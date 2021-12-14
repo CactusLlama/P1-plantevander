@@ -84,6 +84,9 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="C:/Users/johan/Desktop/plantevanderP1/climateNtemperature.h">
+			<Option target="plantevanderP1"/>
+		</Unit>
 		<Unit filename="C:/Users/johan/Desktop/plantevanderP1/plantData.h">
 			<Option target="plantevanderP1"/>
 		</Unit>
@@ -91,9 +94,6 @@
 			<Option target="plantevanderP1"/>
 		</Unit>
 		<Unit filename="C:/Users/johan/Desktop/plantevanderP1/plantevander.c">
-			<Option target="plantevanderP1"/>
-		</Unit>
-		<Unit filename="C:/Users/johan/Desktop/plantevanderP1/temperaturSimulator.h">
 			<Option target="plantevanderP1"/>
 		</Unit>
 		<Unit filename="C:/Users/johan/Desktop/plantevanderP1/CMakeLists.txt">
