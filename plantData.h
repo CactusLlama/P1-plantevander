@@ -1,3 +1,6 @@
+#ifndef PLANTEVANDERP1_PLANTDATA_H
+#define PLANTEVANDERP1_PLANTDATA_H
+
 typedef struct Plants {    
     char name[20];
     double mg;
@@ -5,3 +8,5 @@ typedef struct Plants {
     double ph;
 
 } curPlant;
+
+#endif //PLANTEVANDERP1_PLANTDATA_H
