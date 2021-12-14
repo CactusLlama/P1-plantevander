@@ -10,4 +10,5 @@ void list_plants(struct Plants plants[], int plantAmount);
 void init_structs(struct Plants plants[]);
 void edit_mode(struct Plants plants[], int *plantAmount);   
 void edit_plant(struct Plants *current);
+void debug_mode(struct PlantSensors *current);
 int cmp_nums(float a, float b);

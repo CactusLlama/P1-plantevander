@@ -96,7 +96,8 @@ void process_input(char a, struct Plants plants[], int *plantAmount, struct Plan
         break;
         
         case '2':
-        
+        debug_mode(curPlant);
+        delay(100);
         break;
         
         case '3':
@@ -105,6 +106,7 @@ void process_input(char a, struct Plants plants[], int *plantAmount, struct Plan
         
         default:
         invalid_input();
+        break;
     }
 }
 
@@ -118,10 +120,8 @@ void delay(int mSeconds) {
 }
 
 void invalid_input() {
-    //clear terminal
-    system("cls");
-    printf("Invalid input!");
-    delay(1000);
+    printf("\n\nInvalid input!");
+    delay(1500);
 }
 
 void read_data(struct PlantSensors *current) {
@@ -200,7 +200,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
         system("cls");
         list_plants(plants, *plantAmount);
         printf("\nType the number of what action you want to take:\n");
-        printf(" 1. View and/or edit a plant's limit values\n 2. Add another plant to the list\n 3. Enter simulation\n");
+        printf(" 1. View and/or edit a plant's limit values\n 2. Add another plant to the list\n 3. Go to simulation\n");
         input = getch();
         
         switch (input) {
@@ -208,7 +208,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
             printf("Type the number of the plant you wish to view/edit:\n");
             scanf("%d", &num);
             if (*plantAmount < num | 0 >= plantAmount) {
-                printf("Invalid input!");
+                invalid_input();
                 break;
             }
             print_plant(plants[num - 1]);
@@ -233,8 +233,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
             break;
             
             default:
-            printf("\n\nInvalid input!");
-            delay(1500);
+            invalid_input();
             break;
         }
     }
@@ -343,4 +342,106 @@ void init_structs(struct Plants plants[]) {
     plants[0].ecMax = 12.5;
     plants[0].ecMin = 10;
     
+}
+
+void debug_mode(struct PlantSensors *current) {
+    char input;
+    float temp;
+    int isLoop = 1;
+    
+    while (isLoop) {
+        system("cls");
+        
+        printf("Current values:\n");
+        printf(" 1. pH: %.2f\n 2. EC: %.2f\n 3. water level in tank: %.1f L\n 4. air temperature: %.1f deg C\n 5. water temperature: %.1f deg C\n 6. humidity level: %.2f%%\n", current->ph, current->ec, current->waterLevel, current->airTemp, current->waterTemp, current->humidity);
+        printf("\nEnter the number of what action you want to do.\n 1. Edit value\n 2. Exit debug mode\n");
+        
+        //pause until user presses keyboard
+        input = 'A';
+        while (input == 'A') input = getch();
+        
+        switch (input) {
+            case '1':
+            printf("\nWhat value do you want to edit? (type number)\n");
+            
+            input = 'A';
+            while (input == 'A') input = getch();
+            
+            switch (input) {
+                case '1':
+                printf("\nEnter the new pH value: ");
+                scanf("%f", &temp);
+                
+                
+                if (0 > temp | 14 < temp) {
+                    invalid_input();
+                    break;
+                }
+                current->ph = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                case '2':
+                printf("\nEnter the new EC value: ");
+                scanf("%f", &temp);
+                current->ec = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                case '3':
+                printf("\nEnter the new water level: ");
+                scanf("%f", &temp);
+                current->waterLevel = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                case '4':
+                printf("\nEnter the new air temperature: ");
+                scanf("%f", &temp);
+                current->airTemp = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                case '5':
+                printf("\nEnter the new water temperature: ");
+                scanf("%f", &temp);
+                current->waterTemp = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                case '6':
+                printf("\nEnter the new humidity value: ");
+                scanf("%f", &temp);
+                current->humidity = temp;
+                
+                printf("\nValue changed!");
+                delay(1000);
+                break;
+                
+                default:
+                invalid_input();
+                break;
+            }
+            break;
+            
+            case '2':
+            isLoop = 0;
+            break;
+            
+            default:
+            invalid_input();
+            break;
+        }
+            
+    }
 }
