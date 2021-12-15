@@ -55,14 +55,24 @@ int main() {
         }
         
         //turn fans on or off depending on whether or not 
-        if (plants[selectedProfile].humidMax < curPlant.humidity && fanState == 0) {
+        if (plants[selectedProfile].humidMax < curPlant.humidity) {
             printf("Fans on..\n");
             fanState = 1;
+        } else {
+            printf("Fans off..\n");
+            fanState = 0;
         }
-        fanState = !((plants[selectedProfile].humidMax + plants[selectedProfile].humidMin) / 2 > curPlant.humidity);
-        if (!fanState) printf("Fans off..\n");
         
-        //if (plants[selectedProfile].waterTempMax < curPlant.waterTemp) 
+        if (plants[selectedProfile].waterTempMax < curPlant.waterTemp) {
+            printf("Water cooling on..\n");
+            waterHeatState = -1;
+        } else if (plants[selectedProfile].waterTempMin > curPlant.waterTemp) {
+            printf("Water heating on..\n");
+            waterHeatState = 1;
+        } else {
+            printf("Water temperature control off..\n"),
+            waterHeatState = 0;
+        }
         
         //edit temperatures. latter argument finds the avg of the range given in plant struct, which should be "ideal"
         climateSystem(&curPlant, (plants[selectedProfile].airTempMax + plants[selectedProfile].airTempMin) / 2); 
@@ -207,11 +217,11 @@ void edit_data(struct PlantSensors *current, int sprinklerState, int fanState, i
     current->airTemp -= ((float)rand() / RAND_MAX) * 0.125 - 0.025;
     
     //fluctuate water temperature based on whether or not air temperature is hotter
-    current->waterTemp += (((float)rand() / RAND_MAX) * 0.075 + 0.025) * (current->waterTemp < current->airTemp);
-    current->waterTemp -= (((float)rand() / RAND_MAX) * 0.075 + 0.025) * (current->waterTemp > current->airTemp);
+    current->waterTemp += (((float)rand() / RAND_MAX) * 0.05 + 0.025) * (current->waterTemp < current->airTemp);
+    current->waterTemp -= (((float)rand() / RAND_MAX) * 0.05 + 0.025) * (current->waterTemp > current->airTemp);
     
     //check if water heating/cooling is on and edit valule of water temperature
-    current->waterTemp += (((float)rand() / RAND_MAX) * 0.15 + 0.15) * 
+    current->waterTemp += (((float)rand() / RAND_MAX) * 0.05 + 0.05) * waterHeatState;
 }
 
 void edit_mode(struct Plants plants[], int *plantAmount) {
