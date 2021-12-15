@@ -14,7 +14,7 @@
 int main() {
     char kbInput;
     clock_t curTime = 0;
-    int sprinklerState;
+    int sprinklerState, fanState, waterHeatState;
     int ctr = 110;
     int month = 0, swapMonth = 1;
     int plantAmount = 1, selectedProfile = 0;
@@ -46,16 +46,28 @@ int main() {
             swapMonth *= -1;
         }
         
-        if (ctr % 9 == 0) {
-            printf("\nSprinklers on..\n%d\n", ctr);
+        if (ctr % 9 == 0 && curPlant.waterLevel > 0) {
+            printf("\nSprinklers on..\n", ctr);
             sprinklerState = 1;
         } else {
-            printf("\nSprinklers off..\n%d\n", ctr);
-            sprinklerState = -1;
+            printf("\nSprinklers off..\n", ctr);
+            sprinklerState = 0;
         }
+        
+        //turn fans on or off depending on whether or not 
+        if (plants[selectedProfile].humidMax < curPlant.humidity && fanState == 0) {
+            printf("Fans on..\n");
+            fanState = 1;
+        }
+        fanState = !((plants[selectedProfile].humidMax + plants[selectedProfile].humidMin) / 2 > curPlant.humidity);
+        if (!fanState) printf("Fans off..\n");
+        
+        //if (plants[selectedProfile].waterTempMax < curPlant.waterTemp) 
         
         //edit temperatures. latter argument finds the avg of the range given in plant struct, which should be "ideal"
         climateSystem(&curPlant, (plants[selectedProfile].airTempMax + plants[selectedProfile].airTempMin) / 2); 
+        
+        edit_data(&curPlant, sprinklerState, fanState, waterHeatState);
         
         printf("\nEnter the number of which action you want to do.\n 1. Enter edit mode\n 2. Enter debugging mode\n 3. Exit program\n");
         
@@ -64,8 +76,6 @@ int main() {
             kbInput = getch();
             process_input(kbInput, plants, &plantAmount, &curPlant);
         }
-        
-        edit_data(&curPlant, sprinklerState);
        
         //check if current time is more than last 'cycle' (last time this struck true) + the defined time constant
         if (clock() > curTime + TIME_CONSTANT_MILSEC) {
@@ -178,17 +188,30 @@ void overwrite_data(struct PlantSensors *current) {
     fprintf(file, "%s %f\n", order[ctr++], current->humidity);
 }
 
-void edit_data(struct PlantSensors *current, int sprinklerState) {
+void edit_data(struct PlantSensors *current, int sprinklerState, int fanState, int waterHeatState) {
     //initialize random number generator
     time_t t;
     srand((unsigned) time(&t));
     
-    if (sprinklerState == 1 && current->waterLevel >= 0) {
-        current->waterLevel -= ((float)rand() / RAND_MAX) * 0.5 + 0.5;
-    }
+    //water the plants (subtract amount from waterLevel)
+    current->waterLevel -= (((float)rand() / RAND_MAX) * 0.5 + 0.5) * sprinklerState;
+    
+    //remove humidity if fans are on
+    current->humidity -= (((float)rand() / RAND_MAX) * 0.17 + 0.03) * fanState;
+    
+    //fluctuate in humidity based on whether or not sprinklers are on
+    current->humidity += (((float)rand() / RAND_MAX) * 50/current->humidity) * sprinklerState - 0.005;
     
     //give a random but small fluctuation in temperature
-    current->airTemp += ((float)rand() / RAND_MAX) * 0.125 - 0.1;
+    current->airTemp += ((float)rand() / RAND_MAX) * 0.155 - 0.05;
+    current->airTemp -= ((float)rand() / RAND_MAX) * 0.125 - 0.025;
+    
+    //fluctuate water temperature based on whether or not air temperature is hotter
+    current->waterTemp += (((float)rand() / RAND_MAX) * 0.075 + 0.025) * (current->waterTemp < current->airTemp);
+    current->waterTemp -= (((float)rand() / RAND_MAX) * 0.075 + 0.025) * (current->waterTemp > current->airTemp);
+    
+    //check if water heating/cooling is on and edit valule of water temperature
+    current->waterTemp += (((float)rand() / RAND_MAX) * 0.15 + 0.15) * 
 }
 
 void edit_mode(struct Plants plants[], int *plantAmount) {
@@ -246,6 +269,7 @@ void print_plant(struct Plants current) {
     printf("EC levels for this plant range from %.2f-%.2f\n", current.ecMin, current.ecMax);
     printf("Air temperatures for this plant range from %.1f-%1.f deg C\n", current.airTempMin, current.airTempMax);
     printf("Water temperatures for this plant range from %.1f-%.1f deg C\n", current.waterTempMin, current.waterTempMax);
+    printf("Humidity percentages for this plant range from %.1f-%.1f%%\n", current.humidMax, current.humidMin);
 }
 
 //print the names of the current plants stored in array of structs in a list
@@ -316,6 +340,17 @@ void edit_plant(struct Plants *current) {
         current->waterTempMax = a;
         current->waterTempMin = b;
     } else goto watertemp;
+    
+    humidity:
+    printf("\nEnter the upper limit of the humidity %% for this plant: ");
+    scanf(" %f", &a);
+    printf("\nEnter the lower limit of the humidity %% for this plant: ");
+    scanf(" %f", &b);
+    
+    if (cmp_nums(a, b)) {
+        current->humidMax = a;
+        current->humidMin = b;
+    } else goto humidity;
 }
 
 //compare floats. ph does not call this since it has to be within a defined range and this only finds the biggest number of two floats
@@ -341,7 +376,8 @@ void init_structs(struct Plants plants[]) {
     plants[0].phMin = 7.3;
     plants[0].ecMax = 12.5;
     plants[0].ecMin = 10;
-    
+    plants[0].humidMax = 60.4;
+    plants[0].humidMin = 43.5;
 }
 
 void debug_mode(struct PlantSensors *current) {

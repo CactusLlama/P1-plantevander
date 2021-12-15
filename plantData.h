@@ -8,6 +8,8 @@ struct Plants {
     float ecMin;
     float phMax;
     float phMin;
+    float humidMax;
+    float humidMin;
 };
 
 typedef struct PlantSensors {
