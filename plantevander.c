@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <math.h>
 #include <time.h>
 #include "plantData.h"
 #include "declareFunctions.h"
@@ -27,7 +28,7 @@ int main() {
     
     init_structs(plants);
     
-    edit_mode(plants, &plantAmount);
+    edit_mode(plants, &plantAmount, &selectedProfile);
     
     //endless loop
     for(;;) {
@@ -77,6 +78,9 @@ int main() {
         //edit temperatures. latter argument finds the avg of the range given in plant struct, which should be "ideal"
         climateSystem(&curPlant, (plants[selectedProfile].airTempMax + plants[selectedProfile].airTempMin) / 2); 
         
+        
+        ph_regulation(&curPlant, plants[selectedProfile]);
+        ec_regulation(&curPlant, plants[selectedProfile]);
         edit_data(&curPlant, sprinklerState, fanState, waterHeatState);
         
         printf("\nEnter the number of which action you want to do.\n 1. Enter edit mode\n 2. Enter debugging mode\n 3. Exit program\n");
@@ -84,7 +88,7 @@ int main() {
         //if user presses their keyboard, get the char and process which option the user chose
         if(kbhit()) {
             kbInput = getch();
-            process_input(kbInput, plants, &plantAmount, &curPlant);
+            process_input(kbInput, plants, &plantAmount, &curPlant, &selectedProfile);
         }
        
         //check if current time is more than last 'cycle' (last time this struck true) + the defined time constant
@@ -105,14 +109,14 @@ int main() {
     return 0;
 }
 
-void process_input(char a, struct Plants plants[], int *plantAmount, struct PlantSensors *curPlant) {
+void process_input(char a, struct Plants plants[], int *plantAmount, struct PlantSensors *curPlant, int *selection) {
     //clear terminal
     system("cls");
 
     //switch statement to see which option the user chose
     switch (a) {
         case '1':
-        edit_mode(plants, plantAmount);
+        edit_mode(plants, plantAmount, selection);
         break;
         
         case '2':
@@ -222,9 +226,63 @@ void edit_data(struct PlantSensors *current, int sprinklerState, int fanState, i
     
     //check if water heating/cooling is on and edit valule of water temperature
     current->waterTemp += (((float)rand() / RAND_MAX) * 0.05 + 0.05) * waterHeatState;
+
+    //if waterlevel is 20 or lower, make these changes. new ph is set to a random number between the current ph and 7
+    if (current->waterLevel <= 20) {
+        current->ph = (((float)rand() / RAND_MAX) * (7 - current->ph) + current->ph) * (current->waterLevel <= 20) * (current->ph < 7);
+        current->ph = (((float)rand() / RAND_MAX) * 7 + current->ph) * (current->waterLevel <= 20) * (current->ph > 7);
+        current->ec -= (((float)rand() / RAND_MAX) * (current->ec + 3)  + 3) * (current->waterLevel <= 20);
+        current->waterLevel = 900;
+    }
 }
 
-void edit_mode(struct Plants plants[], int *plantAmount) {
+void ph_regulation(struct PlantSensors *current, struct Plants ideal) {
+    //guard clause; if ph is within range, exit function
+    if (current->ph > ideal.phMin && current->ph < ideal.phMax) {
+        printf("pH regulation: pH within range..\n");
+        return;
+    }
+    
+    float phGoal = (ideal.phMin + ideal.phMax) / 2;
+    float diffAcid;
+    float diffBase;
+    float x = 10;
+    char str[20];
+    
+    if (current->ph > ideal.phMax) {
+        diffAcid = pow(x, -phGoal) - pow(x, -current->ph);
+        printf("pH regulation: solution too basic! Adding HCl (1 mol/L). %.4f mL remaining..\n", diffAcid * current->waterLevel * 1000);
+        current->ph -= 0.2567;
+        current->waterLevel += 0.3875;
+        return;
+    }
+
+    diffBase = pow(x, -(14 - phGoal)) - pow(x, -(14 - current->ph));
+    printf("pH regulation: solution too acidic! Adding NaOH (1 mol/L). %.4f mL remaining..\n", diffBase * current->waterLevel * 1000);
+    current->ph += 0.2567;
+    current->waterLevel += 0.3875;
+    return;
+}
+
+void ec_regulation(struct PlantSensors *current, struct Plants ideal) {
+    if (current->ec > ideal.ecMin && current->ec < ideal.ecMax) {
+        printf("EC regulation: EC within range..\n");
+        return;
+    }
+    
+    if (current->ec > ideal.ecMax) {
+        printf("EC regulation: EC too high! Adding water..\n");
+        current->ec -= 0.1423001;
+        current->waterLevel += 0.3875;
+        return;
+    }
+    
+    printf("EC regulation: EC too low! Adding nutrients..\n");
+    current->ec += 0.1543;
+    return;
+}
+
+void edit_mode(struct Plants plants[], int *plantAmount, int *selection) {
     char input;
     int isLoop = 1;
     int num;
@@ -233,7 +291,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
         system("cls");
         list_plants(plants, *plantAmount);
         printf("\nType the number of what action you want to take:\n");
-        printf(" 1. View and/or edit a plant's limit values\n 2. Add another plant to the list\n 3. Go to simulation\n");
+        printf(" 1. View and/or edit a plant's limit values\n 2. Add another plant to the list\n 3. Select new plant\n 4. Go to simulation\n");
         input = getch();
         
         switch (input) {
@@ -244,6 +302,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
                 invalid_input();
                 break;
             }
+            
             print_plant(plants[num - 1]);
             printf("\nDo you want to edit the values of this plant? [y/n]\n");
             input = getch();
@@ -252,6 +311,7 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
                 printf("Plant edited!");
                 delay(1500);
             }
+            
             break;
             
             case '2':
@@ -262,6 +322,19 @@ void edit_mode(struct Plants plants[], int *plantAmount) {
             break;
             
             case '3':
+            printf("Type the number of the plant you wish to grow:\n");
+            scanf("%d", &input);
+            if (input <= 0 | input > *plantAmount) {
+                invalid_input();
+                break;
+            }
+            
+            *selection = input - 1;
+            printf("New plant selected!\n");
+            delay(1500);
+            break;
+            
+            case '4':
             isLoop = 0;
             break;
             
@@ -400,18 +473,14 @@ void debug_mode(struct PlantSensors *current) {
         
         printf("Current values:\n");
         printf(" 1. pH: %.2f\n 2. EC: %.2f\n 3. water level in tank: %.1f L\n 4. air temperature: %.1f deg C\n 5. water temperature: %.1f deg C\n 6. humidity level: %.2f%%\n", current->ph, current->ec, current->waterLevel, current->airTemp, current->waterTemp, current->humidity);
-        printf("\nEnter the number of what action you want to do.\n 1. Edit value\n 2. Exit debug mode\n");
+        printf("\nEnter the number of what action you want to do.\n 1. Edit value(s)\n 2. Rename current plant\n 3. Exit debug mode\n");
         
-        //pause until user presses keyboard
-        input = 'A';
-        while (input == 'A') input = getch();
+        input = getch();
         
         switch (input) {
             case '1':
             printf("\nWhat value do you want to edit? (type number)\n");
-            
-            input = 'A';
-            while (input == 'A') input = getch();
+            input = getch();
             
             switch (input) {
                 case '1':
@@ -481,6 +550,13 @@ void debug_mode(struct PlantSensors *current) {
             break;
             
             case '2':
+            printf("\nType in the new name for the current plant: ");
+            scanf("%s", &current->name);
+            printf("\nName changed to %s", current->name);
+            delay(1500);
+            break;
+            
+            case '3':
             isLoop = 0;
             break;
             

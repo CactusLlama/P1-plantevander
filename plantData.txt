@@ -1,7 +1,8 @@
-Kartoffel 99999
-ph 13.000000
-ec 10.200000
-waterLevel 9387.773438
-airTemp 26.912909
-waterTemp 24.995262
-humidity 60.201447
+kartofler 99999
+ph 1.540200
+ec 6.397721
+waterLevel 902.325073
+airTemp 26.598293
+waterTemp 24.982988
+humidity 62.312660
+

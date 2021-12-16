@@ -1,5 +1,5 @@
 //look at user input and take action based on it
-void process_input(char a, struct Plants plants[], int *plantAmount, struct PlantSensors *curPlant);
+void process_input(char a, struct Plants plants[], int *plantAmount, struct PlantSensors *curPlant, int *selection);
 
 //put a delay in code (code stops for mSeconds)
 void delay(int mSeconds);
@@ -16,6 +16,12 @@ void overwrite_data(struct PlantSensors *current);
 //edit the values in struct
 void edit_data(struct PlantSensors *current, int sprinklerState, int fanState, int waterHeatState);
 
+//function for ph calculations
+void ph_regulation(struct PlantSensors *current, struct Plants ideal);
+
+//function for regulating ec
+void ec_regulation(struct PlantSensors *current, struct Plants ideal);
+
 //print all values for chosen plant
 void print_plant(struct Plants current);
 
@@ -26,7 +32,7 @@ void list_plants(struct Plants plants[], int plantAmount);
 void init_structs(struct Plants plants[]);
 
 //enter editing mode
-void edit_mode(struct Plants plants[], int *plantAmount);  
+void edit_mode(struct Plants plants[], int *plantAmount, int *selection);  
 
 //edit the limit values for a chosen plant in the array of structs 
 void edit_plant(struct Plants *current);
